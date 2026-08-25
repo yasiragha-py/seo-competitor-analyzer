@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SEO Competitor Analyzer</title>
+<style>
+  :root {
+    --bg: #0b0d12;
+    --card: #14161d;
+    --border: #23262f;
+    --accent: #4ea8ff;
+    --accent-soft: #4ea8ff20;
+    --text: #e8e9ec;
+    --text-dim: #8b8f9a;
+    --good: #34d399;
+    --bad: #f87171;
+    --warn: #fbbf24;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, 'Segoe UI', Inter, Arial, sans-serif;
+    padding: 20px 24px 100px;
+  }
+  .container { max-width: 960px; margin: 0 auto; }
+
+  .topbar {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 36px;
+  }
+  .topbar span { font-weight: 600; font-size: 14px; color: var(--accent); }
+
+  .header { margin-bottom: 28px; text-align: center; }
+  .header h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.3px; }
+  .header p { color: var(--text-dim); font-size: 14px; margin-top: 6px; }
+
+  .input-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+  }
+  textarea {
+    width: 100%; min-height: 90px; background: #0f1117; color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px;
+    font-size: 14px; resize: vertical; outline: none;
+  }
+  textarea:focus { border-color: var(--accent); }
+  .input-meta {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 12px;
+  }
+  .count-badge { font-size: 12px; color: var(--text-dim); }
+  .warning { color: var(--warn); font-size: 13px; }
+
+  button.primary {
+    background: var(--accent); color: #0b0d12; border: none;
+    padding: 11px 22px; border-radius: 8px; font-weight: 600; font-size: 14px;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  button.primary:hover { opacity: 0.88; }
+  button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  #loading {
+    display: none; align-items: center; gap: 8px;
+    color: var(--text-dim); font-size: 13px; margin-top: 14px;
+  }
+  .spinner {
+    width: 14px; height: 14px; border: 2px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .site-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 22px; margin-top: 20px;
+  }
+  .site-card h3 {
+    color: var(--accent); font-size: 16px; font-weight: 600;
+    margin-bottom: 4px; word-break: break-all;
+  }
+  .site-card .title-line { color: var(--text-dim); font-size: 13px; margin-bottom: 16px; }
+
+  .metric-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px; margin-bottom: 4px;
+  }
+  .metric {
+    background: #0f1117; border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px 14px; transition: background 0.12s, border-color 0.12s;
+  }
+  .metric.clickable { cursor: pointer; }
+  .metric.clickable:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .metric .label {
+    font-size: 11px; color: var(--text-dim); text-transform: uppercase;
+    letter-spacing: 0.4px; margin-bottom: 6px;
+  }
+  .metric .value { font-size: 18px; font-weight: 600; }
+  .metric .sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .metric.clickable .value::after { content: " →"; color: var(--accent); font-weight: 400; }
+
+  .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; }
+  .badge.ok { color: var(--good); }
+  .badge.no { color: var(--bad); }
+
+  .schema-row { margin-top: 14px; }
+  .schema-row .label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 8px; }
+  .tag {
+    display: inline-block; background: #0f1117; border: 1px solid var(--border);
+    color: var(--text); padding: 4px 10px; border-radius: 20px;
+    margin: 0 6px 6px 0; font-size: 12px;
+  }
+
+  .download-btn {
+    margin-top: 16px; background: transparent; color: var(--accent);
+    border: 1px solid var(--accent); padding: 8px 16px; border-radius: 6px;
+    font-size: 13px; cursor: pointer; transition: background 0.15s;
+  }
+  .download-btn:hover { background: var(--accent-soft); }
+
+  .error-card { border-color: var(--bad); }
+  .error-text { color: var(--bad); font-size: 14px; margin-top: 4px; }
+
+  .compare-card { border-color: var(--accent); }
+  .compare-card h3 { color: var(--accent); }
+
+  .overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+    z-index: 999; backdrop-filter: blur(2px);
+  }
+  .modal {
+    background: var(--card); border: 1px solid var(--border);
+    max-width: 720px; margin: 60px auto; padding: 24px 26px;
+    border-radius: 12px; max-height: 74vh; overflow-y: auto;
+  }
+  .modal-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--border);
+  }
+  .modal-head h3 { font-size: 15px; color: var(--accent); word-break: break-all; padding-right: 12px; }
+  .close-btn {
+    cursor: pointer; color: var(--text-dim); font-size: 13px; flex-shrink: 0;
+    border: 1px solid var(--border); padding: 4px 10px; border-radius: 6px;
+  }
+  .close-btn:hover { color: var(--text); }
+  .modal table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .modal td { padding: 8px 6px; border-bottom: 1px solid var(--border); word-break: break-all; vertical-align: top; }
+  .modal tr:last-child td { border-bottom: none; }
+  .modal td.tag-cell { color: var(--text-dim); width: 60px; font-weight: 600; }
+  .modal td.no-alt { color: var(--bad); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="topbar">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="11" cy="11" r="7" stroke="#4ea8ff" stroke-width="1.8"/>
+      <path d="M21 21L16.65 16.65" stroke="#4ea8ff" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M8 11L10 13L14.5 8.5" stroke="#4ea8ff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span>SEO Analyzer</span>
+  </div>
+
+  <div class="header">
+    <h1>SEO Competitor Analyzer</h1>
+    <p>One URL per line — compare up to 5 competitors at once</p>
+  </div>
+
+  <div class="input-card">
+    <textarea id="urls" placeholder="https://example.com&#10;https://competitor.com"></textarea>
+    <div class="input-meta">
+      <span class="count-badge" id="countBadge">0 / 5 URLs</span>
+      <span class="warning" id="warning"></span>
+    </div>
+    <button class="primary" onclick="runAnalysis()" style="margin-top:14px;">Analyze</button>
+    <div id="loading"><div class="spinner"></div><span>Analyzing sites...</span></div>
+  </div>
+
+  <div id="output"></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle"></h3>
+      <span class="close-btn" onclick="closeModal()">Close ✕</span>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+let storedResults = {};
+
+document.getElementById("urls").addEventListener("input", () => {
+  const n = document.getElementById("urls").value.split("\n").map(u => u.trim()).filter(Boolean).length;
+  document.getElementById("countBadge").innerText = `${n} / 5 URLs`;
+});
+
+function closeModal() { document.getElementById("overlay").style.display = "none"; }
+
+function openModal(title, bodyHtml) {
+  document.getElementById("modalTitle").innerText = title;
+  document.getElementById("modalBody").innerHTML = bodyHtml;
+  document.getElementById("overlay").style.display = "block";
+}
+
+function showImages(url) {
+  const r = storedResults[url];
+  let html = "<table>";
+  r.images.forEach(img => {
+    html += `<tr><td>${img.src || "-"}</td><td class="${img.alt ? '' : 'no-alt'}">${img.alt || "MISSING ALT"}</td></tr>`;
+  });
+  html += "</table>";
+  openModal("Images — " + url, html);
+}
+
+function showLinks(url, type) {
+  const r = storedResults[url];
+  const links = type === "internal" ? r.internal_links : r.external_links;
+  let html = "<table>";
+  links.forEach(l => { html += `<tr><td>${l}</td></tr>`; });
+  html += "</table>";
+  openModal((type === "internal" ? "Internal Links — " : "External Links — ") + url, html);
+}
+
+function showHeadings(url) {
+  const r = storedResults[url];
+  let html = "<table>";
+  html += `<tr><td class="tag-cell">H1</td><td>${r.h1 || "-"}</td></tr>`;
+  r.h2.forEach(h => { html += `<tr><td class="tag-cell">H2</td><td>${h}</td></tr>`; });
+  r.h3.forEach(h => { html += `<tr><td class="tag-cell">H3</td><td>${h}</td></tr>`; });
+  html += "</table>";
+  openModal("Headings — " + url, html);
+}
+
+function downloadCSV(url) {
+  const r = storedResults[url];
+  let rows = [
+    ["Field", "Value"],
+    ["URL", r.url],
+    ["Title", r.title || ""],
+    ["Word Count", r.word_count],
+    ["Internal Links Count", r.internal_links_count],
+    ["External Links Count", r.external_links_count],
+    ["Images Count", r.images_count],
+    ["Images Missing ALT", r.images_missing_alt],
+    ["Canonical URL", r.canonical_url || "Missing"],
+    ["Schemas", r.schemas.join(" | ")]
+  ];
+  let csv = rows.map(row => row.map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = url.replace(/https?:\/\//,"").replace(/\W+/g,"_") + "_seo_report.csv";
+  link.click();
+}
+
+function siteCard(r) {
+  const canonicalBadge = r.canonical_url
+    ? `<span class="badge ok">✓ Present</span>`
+    : `<span class="badge no">✗ Missing</span>`;
+
+  return `
+    <div class="site-card">
+      <h3>${r.url}</h3>
+      <div class="title-line">${r.title || "No title found"}</div>
+
+      <div class="metric-grid">
+        <div class="metric clickable" onclick="showHeadings('${r.url}')">
+          <div class="label">Headings</div>
+          <div class="value">H1 · ${r.h2.length} H2 · ${r.h3.length} H3</div>
+        </div>
+        <div class="metric">
+          <div class="label">Word Count</div>
+          <div class="value">${r.word_count.toLocaleString()}</div>
+        </div>
+        <div class="metric clickable" onclick="showLinks('${r.url}','internal')">
+          <div class="label">Internal Links</div>
+          <div class="value">${r.internal_links_count}</div>
+        </div>
+        <div class="metric clickable" onclick="showLinks('${r.url}','external')">
+          <div class="label">External Links</div>
+          <div class="value">${r.external_links_count}</div>
+        </div>
+        <div class="metric clickable" onclick="showImages('${r.url}')">
+          <div class="label">Images</div>
+          <div class="value">${r.images_count}</div>
+          <div class="sub">${r.images_missing_alt} missing ALT</div>
+        </div>
+        <div class="metric">
+          <div class="label">Canonical Tag</div>
+          <div class="value">${canonicalBadge}</div>
+        </div>
+      </div>
+
+      <div class="schema-row">
+        <div class="label">Structured Data</div>
+        ${r.schemas.length ? r.schemas.map(s => `<span class="tag">${s}</span>`).join("") : `<span class="badge no">None found</span>`}
+      </div>
+
+      <button class="download-btn" onclick='downloadCSV(${JSON.stringify(r.url)})'>⬇ Download Report (CSV)</button>
+    </div>`;
+}
+
+async function runAnalysis() {
+  const raw = document.getElementById("urls").value;
+  const urls = raw.split("\n").map(u => u.trim()).filter(Boolean);
+  const output = document.getElementById("output");
+  const loading = document.getElementById("loading");
+  const warning = document.getElementById("warning");
+  const btn = document.querySelector("button.primary");
+
+  warning.innerText = "";
+  output.innerHTML = "";
+
+  if (urls.length === 0) { warning.innerText = "Enter at least 1 URL"; return; }
+  if (urls.length > 5) { warning.innerText = "Max 5 URLs allowed"; return; }
+
+  loading.style.display = "flex";
+  btn.disabled = true;
+
+  try {
+    const res = await fetch("/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ urls })
+    });
+    const data = await res.json();
+
+    loading.style.display = "none";
+    btn.disabled = false;
+
+    if (res.status === 429) {
+      output.innerHTML = `<div class="site-card error-card"><h3>Limit reached</h3><div class="error-text">${data.detail}</div></div>`;
+      return;
+    }
+
+    storedResults = {};
+    data.results.forEach(r => {
+      if (r.error) {
+        output.innerHTML += `<div class="site-card error-card"><h3>${r.url || "URL"}</h3><div class="error-text">${r.error}</div></div>`;
+        return;
+      }
+      storedResults[r.url] = r;
+      output.innerHTML += siteCard(r);
+    });
+
+    if (data.comparison) {
+      const c = data.comparison;
+      output.innerHTML += `
+        <div class="site-card compare-card">
+          <h3>Comparison Summary</h3>
+          <div class="metric-grid" style="margin-top:14px;">
+            <div class="metric">
+              <div class="label">Average Word Count</div>
+              <div class="value">${c.average_word_count.toLocaleString()}</div>
+            </div>
+            <div class="metric">
+              <div class="label">Sites Missing Canonical</div>
+              <div class="value" style="font-size:14px;">${c.sites_missing_canonical.length ? c.sites_missing_canonical.join(", ") : "None"}</div>
+            </div>
+          </div>
+        </div>`;
+    }
+  } catch (err) {
+    loading.style.display = "none";
+    btn.disabled = false;
+    output.innerHTML = `<div class="site-card error-card"><div class="error-text">Request failed: ${err}</div></div>`;
+  }
+}
+</script>
+</body>
+</html>

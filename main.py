@@ -1,142 +1,103 @@
-def greet():
-    print("SEO Competitor Analyzer is running!")
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
+from typing import List
+from datetime import date
+
+from scraper import analyze_page
+from database import SessionLocal, SEOResult, RequestLog
 
 
-greet()
+app = FastAPI()
 
-import requests
-
-
-url = "https://example.com"
-
-headers = {"User-Agent": "Mozilla/5.0"}
-response = requests.get(url, headers=headers)
-
-print(response.status_code)
-print(response.text[:500])
-
-import requests
-from bs4 import BeautifulSoup
+DAILY_LIMIT = 20
 
 
-url = "https://example.com"
+class AnalyzeRequest(BaseModel):
+    urls: List[str]
 
-headers = {"User-Agent": "Mozilla/5.0"}
-response = requests.get(url, headers=headers)
 
-soup = BeautifulSoup(response.text, "html.parser")
+@app.get("/")
+def home():
+    return {"message": "SEO Competitor Analyzer API is running"}
 
-print(soup.title.text)
 
-h1 = soup.find("h1")
+def check_rate_limit(ip: str):
+    db = SessionLocal()
+    today = str(date.today())
+    log = db.query(RequestLog).filter(RequestLog.ip == ip, RequestLog.date == today).first()
 
-if h1:
-    print("H1:", h1.text.strip())
-else:
-    print("H1: Not found")
+    if log is None:
+        log = RequestLog(ip=ip, date=today, count=1)
+        db.add(log)
+        db.commit()
+        db.close()
+        return
 
-def analyze_page(url):
-    headers = {"User-Agent": "Mozilla/5.0"}
-    response = requests.get(url, headers=headers)
+    if log.count >= DAILY_LIMIT:
+        db.close()
+        raise HTTPException(status_code=429, detail=f"Daily limit of {DAILY_LIMIT} requests reached. Try again tomorrow.")
 
-    soup = BeautifulSoup(response.text, "html.parser")
+    log.count += 1
+    db.commit()
+    db.close()
 
-    title = soup.title.text.strip() if soup.title else None
 
-    meta = soup.find("meta", attrs={"name": "description"})
-    description = meta.get("content", "").strip() if meta else None
+def build_comparison(results):
+    valid = [r for r in results if "error" not in r]
+    if len(valid) < 2:
+        return None
 
-    h1 = soup.find("h1")
-    h1_text = h1.text.strip() if h1 else None
+    word_counts = {r["url"]: r["word_count"] for r in valid}
+    avg_words = sum(word_counts.values()) // len(word_counts)
 
-    h2s = [h.get_text(" ", strip=True) for h in soup.find_all("h2")]
-
-    h3s = [h.get_text(" ", strip=True) for h in soup.find_all("h3")]
-
-    text = soup.get_text(" ", strip=True)
-    word_count = len(text.split())
+    all_schemas = {r["url"]: r["schemas"] for r in valid}
+    missing_alt = {r["url"]: r["images_missing_alt"] for r in valid}
+    missing_canonical = [r["url"] for r in valid if not r["canonical_url"]]
 
     return {
-        "url": url,
-        "title": title,
-        "meta_description": description,
-        "h1": h1_text,
-        "h2": h2s,
-        "h3": h3s,
-        "word_count": word_count
+        "average_word_count": avg_words,
+        "word_count_by_site": word_counts,
+        "schemas_by_site": all_schemas,
+        "images_missing_alt_by_site": missing_alt,
+        "sites_missing_canonical": missing_canonical
     }
 
 
-result = analyze_page("https://example.com")
+@app.post("/analyze")
+def analyze(request: AnalyzeRequest, req: Request):
+    client_ip = req.client.host
+    check_rate_limit(client_ip)
 
-print(result)
+    results = []
+    db = SessionLocal()
 
-from urllib.parse import urljoin, urlparse
+    for url in request.urls:
+        result = analyze_page(url)
+        results.append(result)
 
-def get_links(soup, base_url):
-    internal_links = []
-    external_links = []
+        if "error" not in result:
+            entry = SEOResult(
+                url=result["url"],
+                title=result["title"],
+                word_count=result["word_count"],
+                internal_links_count=result["internal_links_count"],
+                external_links_count=result["external_links_count"],
+                images_count=result["images_count"],
+                images_missing_alt=result["images_missing_alt"],
+                schemas=", ".join(result["schemas"])
+            )
+            db.add(entry)
 
-    base_domain = urlparse(base_url).netloc
+    db.commit()
+    db.close()
 
-    for link in soup.find_all("a", href=True):
-        full_url = urljoin(base_url, link["href"])
+    response = {"results": results}
+    comparison = build_comparison(results)
+    if comparison:
+        response["comparison"] = comparison
 
-        domain = urlparse(full_url).netloc
-
-        if domain == base_domain:
-            internal_links.append(full_url)
-        else:
-            external_links.append(full_url)
-
-    return internal_links, external_links
-
-internal, external = get_links(soup, url)
-print(internal)
-print(external)
-
-images = []
-
-for image in soup.find_all("img"):
-    images.append({
-        "src": image.get("src"),
-        "alt": image.get("alt")
-    })
-
-print(images)
+    return response
 
 
-canonical = soup.find(
-    "link",
-    attrs={"rel": "canonical"}
-)
-
-canonical_url = canonical.get("href") if canonical else None
-
-print(canonical_url)
-
-robots = soup.find(
-    "meta",
-    attrs={"name": "robots"}
-)
-
-robots_content = (
-    robots.get("content")
-    if robots
-    else None
-)
-
-print(robots_content)
-
-
-schema_scripts = soup.find_all(
-    "script",
-    attrs={"type": "application/ld+json"}
-)
-
-schemas = []
-
-for script in schema_scripts:
-    schemas.append(script.get_text(strip=True))
-
-print(schemas)
+app.mount("/ui", StaticFiles(directory="static", html=True), name="static")
