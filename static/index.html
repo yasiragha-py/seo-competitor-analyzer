@@ -207,15 +207,16 @@ function showHeadings(url) {
 
 function showSocialTags(url) {
   const r = storedResults[url];
-  let html = "<table>";
-  html += `<tr><td class="tag-cell" colspan="2" style="color:var(--accent);">Open Graph</td></tr>`;
+  let html = `<p style="color:var(--text-dim);font-size:13px;margin-bottom:14px;">These tags control how this page's link looks when someone pastes or shares it on social apps — the preview title, description, and image.</p>`;
+  html += "<table>";
+  html += `<tr><td class="tag-cell" colspan="2" style="color:var(--accent);">Open Graph (Facebook, LinkedIn, WhatsApp)</td></tr>`;
   const og = r.social_tags.open_graph;
   if (Object.keys(og).length === 0) {
     html += `<tr><td colspan="2">No Open Graph tags found</td></tr>`;
   } else {
     Object.keys(og).forEach(k => { html += `<tr><td class="tag-cell">${k}</td><td>${og[k] || "-"}</td></tr>`; });
   }
-  html += `<tr><td class="tag-cell" colspan="2" style="color:var(--accent);">Twitter Card</td></tr>`;
+  html += `<tr><td class="tag-cell" colspan="2" style="color:var(--accent);">Twitter Card (X)</td></tr>`;
   const tw = r.social_tags.twitter_card;
   if (Object.keys(tw).length === 0) {
     html += `<tr><td colspan="2">No Twitter Card tags found</td></tr>`;
@@ -286,11 +287,11 @@ function siteCard(r) {
     : `<span class="badge ok">✓ None found</span>`;
 
   const checklistLabels = {
-    question_format_headings: "Question-format headings",
-    faq_schema_present: "FAQ schema present",
-    concise_answer_blocks: "Concise answer blocks",
-    h1_present: "H1 tag present",
-    any_schema_present: "Structured data present"
+    question_format_headings: "Headings written as questions (e.g. \"What is...\", \"How to...\")",
+    faq_schema_present: "FAQ schema markup found",
+    concise_answer_blocks: "Answers are short & scannable, not long paragraphs",
+    h1_present: "Page has one clear main heading (H1)",
+    any_schema_present: "Structured data (schema) present on page"
   };
   let checklistHtml = "";
   for (const key in r.aeo_readiness.breakdown) {
@@ -324,14 +325,31 @@ function siteCard(r) {
 
       <div class="section-label">Technical & Social</div>
       <div class="metric-grid">
-        <div class="metric"><div class="label">Canonical Tag</div><div class="value">${canonicalBadge}</div></div>
-        <div class="metric"><div class="label">Mobile Viewport</div><div class="value">${viewportBadge}</div></div>
-        <div class="metric clickable" onclick="showSocialTags('${r.url}')"><div class="label">Social Tags</div><div class="value">${r.social_tags.open_graph_present || r.social_tags.twitter_card_present ? "View" : "None found"}</div></div>
-        <div class="metric"><div class="label">Structured Data</div><div class="value" style="font-size:13px;">${r.schemas.length ? r.schemas.length + " types" : "None"}</div></div>
+        <div class="metric">
+          <div class="label">Canonical Tag</div>
+          <div class="value">${canonicalBadge}</div>
+          <div class="sub">Tells Google which URL is the "original" — prevents duplicate content issues</div>
+        </div>
+        <div class="metric">
+          <div class="label">Mobile Viewport</div>
+          <div class="value">${viewportBadge}</div>
+          <div class="sub">Makes the page render correctly on phones</div>
+        </div>
+        <div class="metric clickable" onclick="showSocialTags('${r.url}')">
+          <div class="label">Social Sharing Tags</div>
+          <div class="value">${r.social_tags.open_graph_present || r.social_tags.twitter_card_present ? "View" : "None found"}</div>
+          <div class="sub">Controls the preview card shown when this link is shared on Facebook, WhatsApp & X</div>
+        </div>
+        <div class="metric">
+          <div class="label">Structured Data (Schema)</div>
+          <div class="value" style="font-size:13px;">${r.schemas.length ? r.schemas.length + " types" : "None"}</div>
+          <div class="sub">Extra code that helps Google understand and richly display this page</div>
+        </div>
       </div>
       ${r.schemas.length ? `<div style="margin-top:10px;">${r.schemas.map(s => `<span class="tag">${s}</span>`).join("")}</div>` : ""}
 
       <div class="section-label">AEO Readiness</div>
+      <p style="color:var(--text-dim); font-size:12px; margin-bottom:10px;">How well this page is set up to be picked as a direct answer by AI tools like Google AI Overviews, ChatGPT & Siri.</p>
       <div class="score-bar-wrap">
         <div class="row" style="display:flex;justify-content:space-between;font-size:14px;font-weight:600;">
           <span>Score</span><span>${r.aeo_readiness.score} / ${r.aeo_readiness.max_score}</span>
