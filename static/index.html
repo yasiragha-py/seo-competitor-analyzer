@@ -25,30 +25,21 @@
   }
   .container { max-width: 960px; margin: 0 auto; }
 
-  .topbar {
-    display: flex; align-items: center; gap: 8px;
-    margin-bottom: 36px;
-  }
+  .topbar { display: flex; align-items: center; gap: 8px; margin-bottom: 36px; }
   .topbar span { font-weight: 600; font-size: 14px; color: var(--accent); }
 
   .header { margin-bottom: 28px; text-align: center; }
   .header h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.3px; }
   .header p { color: var(--text-dim); font-size: 14px; margin-top: 6px; }
 
-  .input-card {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 12px; padding: 20px;
-  }
+  .input-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
   textarea {
     width: 100%; min-height: 90px; background: #0f1117; color: var(--text);
     border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px;
     font-size: 14px; resize: vertical; outline: none;
   }
   textarea:focus { border-color: var(--accent); }
-  .input-meta {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-top: 12px;
-  }
+  .input-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
   .count-badge { font-size: 12px; color: var(--text-dim); }
   .warning { color: var(--warn); font-size: 13px; }
 
@@ -60,10 +51,7 @@
   button.primary:hover { opacity: 0.88; }
   button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  #loading {
-    display: none; align-items: center; gap: 8px;
-    color: var(--text-dim); font-size: 13px; margin-top: 14px;
-  }
+  #loading { display: none; align-items: center; gap: 8px; color: var(--text-dim); font-size: 13px; margin-top: 14px; }
   .spinner {
     width: 14px; height: 14px; border: 2px solid var(--border);
     border-top-color: var(--accent); border-radius: 50%;
@@ -71,30 +59,24 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  .site-card {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 12px; padding: 22px; margin-top: 20px;
-  }
-  .site-card h3 {
-    color: var(--accent); font-size: 16px; font-weight: 600;
-    margin-bottom: 4px; word-break: break-all;
-  }
+  .site-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin-top: 20px; }
+  .site-card h3 { color: var(--accent); font-size: 16px; font-weight: 600; margin-bottom: 4px; word-break: break-all; }
   .site-card .title-line { color: var(--text-dim); font-size: 13px; margin-bottom: 16px; }
 
-  .metric-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 10px; margin-bottom: 4px;
+  .section-label {
+    font-size: 11px; color: var(--text-dim); text-transform: uppercase;
+    letter-spacing: 0.5px; margin: 20px 0 10px; font-weight: 600;
   }
+  .section-label:first-of-type { margin-top: 4px; }
+
+  .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
   .metric {
     background: #0f1117; border: 1px solid var(--border); border-radius: 8px;
     padding: 12px 14px; transition: background 0.12s, border-color 0.12s;
   }
   .metric.clickable { cursor: pointer; }
   .metric.clickable:hover { background: var(--accent-soft); border-color: var(--accent); }
-  .metric .label {
-    font-size: 11px; color: var(--text-dim); text-transform: uppercase;
-    letter-spacing: 0.4px; margin-bottom: 6px;
-  }
+  .metric .label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; }
   .metric .value { font-size: 18px; font-weight: 600; }
   .metric .sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
   .metric.clickable .value::after { content: " →"; color: var(--accent); font-weight: 400; }
@@ -102,17 +84,18 @@
   .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; }
   .badge.ok { color: var(--good); }
   .badge.no { color: var(--bad); }
+  .badge.mid { color: var(--warn); }
 
-  .schema-row { margin-top: 14px; }
-  .schema-row .label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 8px; }
-  .tag {
-    display: inline-block; background: #0f1117; border: 1px solid var(--border);
-    color: var(--text); padding: 4px 10px; border-radius: 20px;
-    margin: 0 6px 6px 0; font-size: 12px;
-  }
+  .tag { display: inline-block; background: #0f1117; border: 1px solid var(--border); color: var(--text); padding: 4px 10px; border-radius: 20px; margin: 0 6px 6px 0; font-size: 12px; }
+
+  .score-bar-wrap { background: #0f1117; border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .score-bar-track { background: var(--border); height: 8px; border-radius: 4px; overflow: hidden; margin-top: 8px; }
+  .score-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; }
+  .score-checklist { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+  .score-checklist .item { display: flex; align-items: center; gap: 8px; }
 
   .download-btn {
-    margin-top: 16px; background: transparent; color: var(--accent);
+    margin-top: 18px; background: transparent; color: var(--accent);
     border: 1px solid var(--accent); padding: 8px 16px; border-radius: 6px;
     font-size: 13px; cursor: pointer; transition: background 0.15s;
   }
@@ -124,30 +107,18 @@
   .compare-card { border-color: var(--accent); }
   .compare-card h3 { color: var(--accent); }
 
-  .overlay {
-    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75);
-    z-index: 999; backdrop-filter: blur(2px);
-  }
-  .modal {
-    background: var(--card); border: 1px solid var(--border);
-    max-width: 720px; margin: 60px auto; padding: 24px 26px;
-    border-radius: 12px; max-height: 74vh; overflow-y: auto;
-  }
-  .modal-head {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--border);
-  }
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 999; backdrop-filter: blur(2px); }
+  .modal { background: var(--card); border: 1px solid var(--border); max-width: 720px; margin: 60px auto; padding: 24px 26px; border-radius: 12px; max-height: 74vh; overflow-y: auto; }
+  .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
   .modal-head h3 { font-size: 15px; color: var(--accent); word-break: break-all; padding-right: 12px; }
-  .close-btn {
-    cursor: pointer; color: var(--text-dim); font-size: 13px; flex-shrink: 0;
-    border: 1px solid var(--border); padding: 4px 10px; border-radius: 6px;
-  }
+  .close-btn { cursor: pointer; color: var(--text-dim); font-size: 13px; flex-shrink: 0; border: 1px solid var(--border); padding: 4px 10px; border-radius: 6px; }
   .close-btn:hover { color: var(--text); }
   .modal table { width: 100%; border-collapse: collapse; font-size: 13px; }
   .modal td { padding: 8px 6px; border-bottom: 1px solid var(--border); word-break: break-all; vertical-align: top; }
   .modal tr:last-child td { border-bottom: none; }
-  .modal td.tag-cell { color: var(--text-dim); width: 60px; font-weight: 600; }
+  .modal td.tag-cell { color: var(--text-dim); width: 90px; font-weight: 600; }
   .modal td.no-alt { color: var(--bad); }
+  .modal td.status-bad { color: var(--bad); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -199,7 +170,6 @@ document.getElementById("urls").addEventListener("input", () => {
 });
 
 function closeModal() { document.getElementById("overlay").style.display = "none"; }
-
 function openModal(title, bodyHtml) {
   document.getElementById("modalTitle").innerText = title;
   document.getElementById("modalBody").innerHTML = bodyHtml;
@@ -235,19 +205,63 @@ function showHeadings(url) {
   openModal("Headings — " + url, html);
 }
 
+function showSocialTags(url) {
+  const r = storedResults[url];
+  let html = "<table>";
+  html += `<tr><td class="tag-cell" colspan="2" style="color:var(--accent);">Open Graph</td></tr>`;
+  const og = r.social_tags.open_graph;
+  if (Object.keys(og).length === 0) {
+    html += `<tr><td colspan="2">No Open Graph tags found</td></tr>`;
+  } else {
+    Object.keys(og).forEach(k => { html += `<tr><td class="tag-cell">${k}</td><td>${og[k] || "-"}</td></tr>`; });
+  }
+  html += `<tr><td class="tag-cell" colspan="2" style="color:var(--accent);">Twitter Card</td></tr>`;
+  const tw = r.social_tags.twitter_card;
+  if (Object.keys(tw).length === 0) {
+    html += `<tr><td colspan="2">No Twitter Card tags found</td></tr>`;
+  } else {
+    Object.keys(tw).forEach(k => { html += `<tr><td class="tag-cell">${k}</td><td>${tw[k] || "-"}</td></tr>`; });
+  }
+  html += "</table>";
+  openModal("Social Sharing Tags — " + url, html);
+}
+
+function showBrokenLinks(url) {
+  const r = storedResults[url];
+  const b = r.broken_links_check;
+  let html = `<p style="color:var(--text-dim);font-size:13px;margin-bottom:12px;">Checked ${b.checked_count} internal links, found ${b.broken_count} broken.</p>`;
+  if (b.broken_links.length === 0) {
+    html += `<p class="badge ok">✓ No broken links found in checked sample</p>`;
+  } else {
+    html += "<table>";
+    b.broken_links.forEach(bl => {
+      html += `<tr><td>${bl.url}</td><td class="status-bad">${bl.status}</td></tr>`;
+    });
+    html += "</table>";
+  }
+  openModal("Broken Internal Links — " + url, html);
+}
+
 function downloadCSV(url) {
   const r = storedResults[url];
   let rows = [
     ["Field", "Value"],
     ["URL", r.url],
     ["Title", r.title || ""],
+    ["Title Length", r.title_length + " (" + r.title_length_status + ")"],
+    ["Meta Description Length", r.description_length + " (" + r.description_length_status + ")"],
     ["Word Count", r.word_count],
     ["Internal Links Count", r.internal_links_count],
     ["External Links Count", r.external_links_count],
+    ["Broken Internal Links", r.broken_links_check.broken_count + " / " + r.broken_links_check.checked_count + " checked"],
     ["Images Count", r.images_count],
     ["Images Missing ALT", r.images_missing_alt],
     ["Canonical URL", r.canonical_url || "Missing"],
-    ["Schemas", r.schemas.join(" | ")]
+    ["Viewport Tag", r.viewport_present ? "Present" : "Missing"],
+    ["Open Graph Tags", r.social_tags.open_graph_present ? "Present" : "Missing"],
+    ["Twitter Card Tags", r.social_tags.twitter_card_present ? "Present" : "Missing"],
+    ["Schemas", r.schemas.join(" | ")],
+    ["AEO Score", r.aeo_readiness.score + " / " + r.aeo_readiness.max_score]
   ];
   let csv = rows.map(row => row.map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
   const blob = new Blob([csv], { type: "text/csv" });
@@ -257,47 +271,73 @@ function downloadCSV(url) {
   link.click();
 }
 
+function lengthBadge(status) {
+  if (status === "Good") return `<span class="badge ok">✓ Good</span>`;
+  if (status === "Missing") return `<span class="badge no">✗ Missing</span>`;
+  return `<span class="badge mid">⚠ ${status}</span>`;
+}
+
 function siteCard(r) {
-  const canonicalBadge = r.canonical_url
-    ? `<span class="badge ok">✓ Present</span>`
-    : `<span class="badge no">✗ Missing</span>`;
+  const canonicalBadge = r.canonical_url ? `<span class="badge ok">✓ Present</span>` : `<span class="badge no">✗ Missing</span>`;
+  const viewportBadge = r.viewport_present ? `<span class="badge ok">✓ Present</span>` : `<span class="badge no">✗ Missing</span>`;
+  const scorePct = Math.round((r.aeo_readiness.score / r.aeo_readiness.max_score) * 100);
+  const brokenBadge = r.broken_links_check.broken_count > 0
+    ? `<span class="badge no">${r.broken_links_check.broken_count} broken</span>`
+    : `<span class="badge ok">✓ None found</span>`;
+
+  const checklistLabels = {
+    question_format_headings: "Question-format headings",
+    faq_schema_present: "FAQ schema present",
+    concise_answer_blocks: "Concise answer blocks",
+    h1_present: "H1 tag present",
+    any_schema_present: "Structured data present"
+  };
+  let checklistHtml = "";
+  for (const key in r.aeo_readiness.breakdown) {
+    const pass = r.aeo_readiness.breakdown[key];
+    checklistHtml += `<div class="item"><span style="color:${pass ? 'var(--good)' : 'var(--bad)'}">${pass ? '✓' : '✗'}</span><span>${checklistLabels[key] || key}</span></div>`;
+  }
 
   return `
     <div class="site-card">
       <h3>${r.url}</h3>
       <div class="title-line">${r.title || "No title found"}</div>
 
+      <div class="section-label">Content Overview</div>
       <div class="metric-grid">
         <div class="metric clickable" onclick="showHeadings('${r.url}')">
           <div class="label">Headings</div>
           <div class="value">H1 · ${r.h2.length} H2 · ${r.h3.length} H3</div>
         </div>
-        <div class="metric">
-          <div class="label">Word Count</div>
-          <div class="value">${r.word_count.toLocaleString()}</div>
-        </div>
-        <div class="metric clickable" onclick="showLinks('${r.url}','internal')">
-          <div class="label">Internal Links</div>
-          <div class="value">${r.internal_links_count}</div>
-        </div>
-        <div class="metric clickable" onclick="showLinks('${r.url}','external')">
-          <div class="label">External Links</div>
-          <div class="value">${r.external_links_count}</div>
-        </div>
-        <div class="metric clickable" onclick="showImages('${r.url}')">
-          <div class="label">Images</div>
-          <div class="value">${r.images_count}</div>
-          <div class="sub">${r.images_missing_alt} missing ALT</div>
-        </div>
-        <div class="metric">
-          <div class="label">Canonical Tag</div>
-          <div class="value">${canonicalBadge}</div>
-        </div>
+        <div class="metric"><div class="label">Word Count</div><div class="value">${r.word_count.toLocaleString()}</div></div>
+        <div class="metric"><div class="label">Title Length</div><div class="value">${r.title_length} chars</div><div class="sub">${lengthBadge(r.title_length_status)}</div></div>
+        <div class="metric"><div class="label">Meta Description</div><div class="value">${r.description_length} chars</div><div class="sub">${lengthBadge(r.description_length_status)}</div></div>
       </div>
 
-      <div class="schema-row">
-        <div class="label">Structured Data</div>
-        ${r.schemas.length ? r.schemas.map(s => `<span class="tag">${s}</span>`).join("") : `<span class="badge no">None found</span>`}
+      <div class="section-label">Links & Media</div>
+      <div class="metric-grid">
+        <div class="metric clickable" onclick="showLinks('${r.url}','internal')"><div class="label">Internal Links</div><div class="value">${r.internal_links_count}</div></div>
+        <div class="metric clickable" onclick="showLinks('${r.url}','external')"><div class="label">External Links</div><div class="value">${r.external_links_count}</div></div>
+        <div class="metric clickable" onclick="showBrokenLinks('${r.url}')"><div class="label">Broken Links</div><div class="value">${brokenBadge}</div><div class="sub">of ${r.broken_links_check.checked_count} checked</div></div>
+        <div class="metric clickable" onclick="showImages('${r.url}')"><div class="label">Images</div><div class="value">${r.images_count}</div><div class="sub">${r.images_missing_alt} missing ALT</div></div>
+      </div>
+
+      <div class="section-label">Technical & Social</div>
+      <div class="metric-grid">
+        <div class="metric"><div class="label">Canonical Tag</div><div class="value">${canonicalBadge}</div></div>
+        <div class="metric"><div class="label">Mobile Viewport</div><div class="value">${viewportBadge}</div></div>
+        <div class="metric clickable" onclick="showSocialTags('${r.url}')"><div class="label">Social Tags</div><div class="value">${r.social_tags.open_graph_present || r.social_tags.twitter_card_present ? "View" : "None found"}</div></div>
+        <div class="metric"><div class="label">Structured Data</div><div class="value" style="font-size:13px;">${r.schemas.length ? r.schemas.length + " types" : "None"}</div></div>
+      </div>
+      ${r.schemas.length ? `<div style="margin-top:10px;">${r.schemas.map(s => `<span class="tag">${s}</span>`).join("")}</div>` : ""}
+
+      <div class="section-label">AEO Readiness</div>
+      <div class="score-bar-wrap">
+        <div class="row" style="display:flex;justify-content:space-between;font-size:14px;font-weight:600;">
+          <span>Score</span><span>${r.aeo_readiness.score} / ${r.aeo_readiness.max_score}</span>
+        </div>
+        <div class="score-bar-track"><div class="score-bar-fill" style="width:${scorePct}%;"></div></div>
+        <div class="score-checklist">${checklistHtml}</div>
       </div>
 
       <button class="download-btn" onclick='downloadCSV(${JSON.stringify(r.url)})'>⬇ Download Report (CSV)</button>
@@ -353,14 +393,8 @@ async function runAnalysis() {
         <div class="site-card compare-card">
           <h3>Comparison Summary</h3>
           <div class="metric-grid" style="margin-top:14px;">
-            <div class="metric">
-              <div class="label">Average Word Count</div>
-              <div class="value">${c.average_word_count.toLocaleString()}</div>
-            </div>
-            <div class="metric">
-              <div class="label">Sites Missing Canonical</div>
-              <div class="value" style="font-size:14px;">${c.sites_missing_canonical.length ? c.sites_missing_canonical.join(", ") : "None"}</div>
-            </div>
+            <div class="metric"><div class="label">Average Word Count</div><div class="value">${c.average_word_count.toLocaleString()}</div></div>
+            <div class="metric"><div class="label">Sites Missing Canonical</div><div class="value" style="font-size:14px;">${c.sites_missing_canonical.length ? c.sites_missing_canonical.join(", ") : "None"}</div></div>
           </div>
         </div>`;
     }
