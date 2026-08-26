@@ -176,7 +176,7 @@
 <body>
 <div class="container">
 
-  <div class="topbar" onclick="goHome()" title="Back to top / New search">
+  <div class="topbar" onclick="reloadPage()" title="Reload / New search">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="11" cy="11" r="7" stroke="#4ea8ff" stroke-width="1.8"/>
       <path d="M21 21L16.65 16.65" stroke="#4ea8ff" stroke-width="1.8" stroke-linecap="round"/>
@@ -205,11 +205,6 @@
       <span class="count-badge" id="countBadge">0 / 5 URLs</span>
       <span class="warning" id="warning"></span>
     </div>
-
-    <label style="display:flex; align-items:center; gap:8px; margin-top:12px; font-size:13px; color:var(--text-dim); cursor:pointer;">
-      <input type="checkbox" id="ignoreRobots" style="accent-color: var(--accent);">
-      Ignore robots.txt (use if a site is blocked but you have permission to check it)
-    </label>
 
     <div class="action-row">
       <button class="primary" onclick="runAnalysis()">Analyze</button>
@@ -304,6 +299,45 @@ function clearInput() {
 
 function goHome() {
   window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function reloadPage() {
+  window.location.reload();
+}
+
+async function checkAnyway(url) {
+  const res = await fetch("/analyze", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ urls: [url], respect_robots: false })
+  });
+  const data = await res.json();
+
+  if (res.status === 429) {
+    showToast(data.detail);
+    return;
+  }
+
+  const r = data.results[0];
+  if (r.error) {
+    showToast("Still couldn't fetch this site: " + r.error);
+    return;
+  }
+
+  storedResults[r.url] = r;
+  const quotaText = document.getElementById("quotaText");
+  if (typeof data.remaining_today === "number") {
+    quotaText.innerHTML = `<b>${data.remaining_today}</b> / ${DAILY_LIMIT} requests left today`;
+  }
+
+  // find and replace the error card for this URL with the real result card
+  const cards = document.querySelectorAll("#output .site-card");
+  cards.forEach(card => {
+    const heading = card.querySelector("h3");
+    if (heading && heading.innerText === url) {
+      card.outerHTML = siteCard(r);
+    }
+  });
 }
 
 window.addEventListener("scroll", () => {
@@ -558,7 +592,7 @@ async function runAnalysis() {
     const res = await fetch("/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ urls, respect_robots: !document.getElementById("ignoreRobots").checked })
+      body: JSON.stringify({ urls, respect_robots: true })
     });
     const data = await res.json();
 
@@ -578,9 +612,17 @@ async function runAnalysis() {
     }
 
     storedResults = {};
+    let blockedUrls = [];
     data.results.forEach(r => {
       if (r.error) {
-        output.innerHTML += `<div class="site-card error-card"><h3>${r.url || "URL"}</h3><div class="error-text">${r.error}</div></div>`;
+        const isRobotsBlock = r.error.toLowerCase().includes("robots.txt");
+        if (isRobotsBlock) blockedUrls.push(r.url);
+        output.innerHTML += `
+          <div class="site-card error-card">
+            <h3>${r.url || "URL"}</h3>
+            <div class="error-text">${isRobotsBlock ? "This site's robots.txt blocks automated tools." : r.error}</div>
+            ${isRobotsBlock ? `<button class="secondary" style="margin-top:10px;" onclick="checkAnyway('${r.url}')">Check anyway →</button>` : ""}
+          </div>`;
         return;
       }
       storedResults[r.url] = r;
