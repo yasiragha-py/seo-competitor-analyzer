@@ -235,7 +235,20 @@
 <script>
 let storedResults = {};
 const HISTORY_KEY = "seo_analyzer_url_history";
-const DAILY_LIMIT = 20;
+const DAILY_LIMIT = 10;
+
+async function loadQuota() {
+  try {
+    const res = await fetch("/quota");
+    const data = await res.json();
+    const quotaText = document.getElementById("quotaText");
+    quotaText.innerHTML = `<b>${data.remaining}</b> / ${DAILY_LIMIT} requests left today`;
+  } catch (err) {
+    // silently ignore, quota text just stays empty
+  }
+}
+
+document.addEventListener("DOMContentLoaded", loadQuota);
 
 function getHistory() {
   try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; }

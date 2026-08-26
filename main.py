@@ -10,7 +10,7 @@ from database import SessionLocal, SEOResult, RequestLog
 
 app = FastAPI()
 
-DAILY_LIMIT = 20
+DAILY_LIMIT = 10
 
 
 class AnalyzeRequest(BaseModel):
@@ -23,24 +23,43 @@ def home():
     return {"message": "SEO Competitor Analyzer API is running"}
 
 
-def check_rate_limit(ip: str):
+@app.get("/quota")
+def get_quota(req: Request):
+    client_ip = req.client.host
+    db = SessionLocal()
+    today = str(date.today())
+    log = db.query(RequestLog).filter(RequestLog.ip == client_ip, RequestLog.date == today).first()
+    db.close()
+    if log is None:
+        return {"remaining": DAILY_LIMIT}
+    return {"remaining": max(DAILY_LIMIT - log.count, 0)}
+
+
+DAILY_LIMIT = 10
+
+
+def check_rate_limit(ip: str, urls_count: int):
     db = SessionLocal()
     today = str(date.today())
     log = db.query(RequestLog).filter(RequestLog.ip == ip, RequestLog.date == today).first()
 
     if log is None:
-        log = RequestLog(ip=ip, date=today, count=1)
+        if urls_count > DAILY_LIMIT:
+            db.close()
+            raise HTTPException(status_code=429, detail=f"You requested {urls_count} URLs but only {DAILY_LIMIT} requests are allowed per day.")
+        log = RequestLog(ip=ip, date=today, count=urls_count)
         db.add(log)
         db.commit()
-        remaining = DAILY_LIMIT - 1
+        remaining = DAILY_LIMIT - urls_count
         db.close()
         return remaining
 
-    if log.count >= DAILY_LIMIT:
+    remaining_before = DAILY_LIMIT - log.count
+    if urls_count > remaining_before:
         db.close()
-        raise HTTPException(status_code=429, detail=f"Daily limit of {DAILY_LIMIT} requests reached. Try again tomorrow.")
+        raise HTTPException(status_code=429, detail=f"Only {remaining_before} requests left today, but you submitted {urls_count} URLs.")
 
-    log.count += 1
+    log.count += urls_count
     db.commit()
     remaining = DAILY_LIMIT - log.count
     db.close()
@@ -71,7 +90,7 @@ def build_comparison(results):
 @app.post("/analyze")
 def analyze(request: AnalyzeRequest, req: Request):
     client_ip = req.client.host
-    remaining = check_rate_limit(client_ip)
+    remaining = check_rate_limit(client_ip, len(request.urls))
 
     results = []
     db = SessionLocal()
