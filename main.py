@@ -31,8 +31,9 @@ def check_rate_limit(ip: str):
         log = RequestLog(ip=ip, date=today, count=1)
         db.add(log)
         db.commit()
+        remaining = DAILY_LIMIT - 1
         db.close()
-        return
+        return remaining
 
     if log.count >= DAILY_LIMIT:
         db.close()
@@ -40,7 +41,9 @@ def check_rate_limit(ip: str):
 
     log.count += 1
     db.commit()
+    remaining = DAILY_LIMIT - log.count
     db.close()
+    return remaining
 
 
 def build_comparison(results):
@@ -67,7 +70,7 @@ def build_comparison(results):
 @app.post("/analyze")
 def analyze(request: AnalyzeRequest, req: Request):
     client_ip = req.client.host
-    check_rate_limit(client_ip)
+    remaining = check_rate_limit(client_ip)
 
     results = []
     db = SessionLocal()
@@ -92,7 +95,7 @@ def analyze(request: AnalyzeRequest, req: Request):
     db.commit()
     db.close()
 
-    response = {"results": results}
+    response = {"results": results, "remaining_today": remaining}
     comparison = build_comparison(results)
     if comparison:
         response["comparison"] = comparison
