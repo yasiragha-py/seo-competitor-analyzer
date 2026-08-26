@@ -206,6 +206,11 @@
       <span class="warning" id="warning"></span>
     </div>
 
+    <label style="display:flex; align-items:center; gap:8px; margin-top:12px; font-size:13px; color:var(--text-dim); cursor:pointer;">
+      <input type="checkbox" id="ignoreRobots" style="accent-color: var(--accent);">
+      Ignore robots.txt (use if a site is blocked but you have permission to check it)
+    </label>
+
     <div class="action-row">
       <button class="primary" onclick="runAnalysis()">Analyze</button>
       <button class="secondary" onclick="clearInput()">Clear</button>
@@ -553,7 +558,7 @@ async function runAnalysis() {
     const res = await fetch("/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ urls })
+      body: JSON.stringify({ urls, respect_robots: !document.getElementById("ignoreRobots").checked })
     });
     const data = await res.json();
 
