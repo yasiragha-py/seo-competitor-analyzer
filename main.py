@@ -95,9 +95,19 @@ def build_comparison(results):
 @app.post("/analyze")
 def analyze(request: AnalyzeRequest, req: Request):
     client_ip = get_client_ip(req)
-    remaining = check_rate_limit(client_ip, len(request.urls))
+
+    db = SessionLocal()
+    today = str(date.today())
+    log = db.query(RequestLog).filter(RequestLog.ip == client_ip, RequestLog.date == today).first()
+    already_used = log.count if log else 0
+    db.close()
+
+    remaining_before = DAILY_LIMIT - already_used
+    if remaining_before <= 0:
+        raise HTTPException(status_code=429, detail=f"Daily limit of {DAILY_LIMIT} requests reached. Try again tomorrow.")
 
     results = []
+    successful_count = 0
     db = SessionLocal()
 
     for url in request.urls:
@@ -105,6 +115,7 @@ def analyze(request: AnalyzeRequest, req: Request):
         results.append(result)
 
         if "error" not in result:
+            successful_count += 1
             entry = SEOResult(
                 url=result["url"],
                 title=result["title"],
@@ -117,8 +128,18 @@ def analyze(request: AnalyzeRequest, req: Request):
             )
             db.add(entry)
 
+    if successful_count > 0:
+        log = db.query(RequestLog).filter(RequestLog.ip == client_ip, RequestLog.date == today).first()
+        if log is None:
+            log = RequestLog(ip=client_ip, date=today, count=successful_count)
+            db.add(log)
+        else:
+            log.count += successful_count
+
     db.commit()
     db.close()
+
+    remaining = DAILY_LIMIT - (already_used + successful_count)
 
     response = {"results": results, "remaining_today": remaining}
     comparison = build_comparison(results)
