@@ -12,6 +12,11 @@ app = FastAPI()
 
 DAILY_LIMIT = 10
 
+def get_client_ip(req: Request) -> str:
+    forwarded = req.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return get_client_ip(req)
 
 class AnalyzeRequest(BaseModel):
     urls: List[str]
@@ -25,7 +30,7 @@ def home():
 
 @app.get("/quota")
 def get_quota(req: Request):
-    client_ip = req.client.host
+    client_ip = get_client_ip(req)
     db = SessionLocal()
     today = str(date.today())
     log = db.query(RequestLog).filter(RequestLog.ip == client_ip, RequestLog.date == today).first()
@@ -89,7 +94,7 @@ def build_comparison(results):
 
 @app.post("/analyze")
 def analyze(request: AnalyzeRequest, req: Request):
-    client_ip = req.client.host
+    client_ip = get_client_ip(req)
     remaining = check_rate_limit(client_ip, len(request.urls))
 
     results = []
