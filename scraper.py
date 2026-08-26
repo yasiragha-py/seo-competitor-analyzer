@@ -20,7 +20,7 @@ def analyze_page(url, respect_robots=True):
             rp.set_url(robots_url)
             rp.read()
             if not rp.can_fetch("*", url):
-                return {"error": "Scraping disallowed by robots.txt for this URL. You can override this in Advanced Options."}
+                return {"error": "Scraping disallowed by robots.txt for this URL. You can override this in Advanced Options.", "url": url}
         except:
             pass
 
@@ -31,7 +31,7 @@ def analyze_page(url, respect_robots=True):
     except requests.exceptions.Timeout:
         return {"error": "Request timed out"}
     except requests.exceptions.ConnectionError:
-        return {"error": "Could not connect to the website"}
+        return {"error": "Could not connect to the website", "url": url}
     except requests.exceptions.HTTPError:
         return {"error": f"HTTP error: {response.status_code}"}
     except requests.exceptions.RequestException as e:
