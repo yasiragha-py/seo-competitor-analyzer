@@ -5,7 +5,7 @@ import json
 from urllib.robotparser import RobotFileParser
 
 
-def analyze_page(url):
+def analyze_page(url, respect_robots=True):
     if not url.startswith("http://") and not url.startswith("https://"):
         url = "https://" + url
 
@@ -13,15 +13,16 @@ def analyze_page(url):
     if not parsed.scheme or not parsed.netloc:
         return {"error": "Invalid URL. Must include https:// or http://"}
 
-    robots_url = f"{parsed.scheme}://{parsed.netloc}/robots.txt"
-    rp = RobotFileParser()
-    try:
-        rp.set_url(robots_url)
-        rp.read()
-        if not rp.can_fetch("*", url):
-            return {"error": "Scraping disallowed by robots.txt for this URL"}
-    except:
-        pass
+    if respect_robots:
+        robots_url = f"{parsed.scheme}://{parsed.netloc}/robots.txt"
+        rp = RobotFileParser()
+        try:
+            rp.set_url(robots_url)
+            rp.read()
+            if not rp.can_fetch("*", url):
+                return {"error": "Scraping disallowed by robots.txt for this URL. You can override this in Advanced Options."}
+        except:
+            pass
 
     headers = {"User-Agent": "Mozilla/5.0"}
     try:
@@ -97,7 +98,7 @@ def analyze_page(url):
             pass
     schemas = list(schema_types)
 
-    # --- STEP: Title & Meta Description length check ---
+    # --- Title & Meta Description length check ---
     title_length = len(title) if title else 0
     title_length_status = (
         "Good" if 50 <= title_length <= 60
@@ -114,7 +115,7 @@ def analyze_page(url):
         else "Missing"
     )
 
-    # --- STEP: Open Graph & Twitter Card tags ---
+    # --- Open Graph & Twitter Card tags ---
     og_tags = {}
     for tag in soup.find_all("meta", attrs={"property": lambda p: p and p.startswith("og:")}):
         og_tags[tag.get("property")] = tag.get("content")
@@ -130,12 +131,12 @@ def analyze_page(url):
         "twitter_card_present": len(twitter_tags) > 0
     }
 
-    # --- STEP: Mobile viewport tag check ---
+    # --- Mobile viewport tag check ---
     viewport = soup.find("meta", attrs={"name": "viewport"})
     viewport_present = viewport is not None
     viewport_content = viewport.get("content") if viewport else None
 
-    # --- STEP: AEO Readiness Score ---
+    # --- AEO Readiness Score ---
     question_words = ["what", "how", "why", "when", "where", "who", "which", "can", "does", "is"]
     all_headings = h2s + h3s
     question_headings = [
@@ -178,7 +179,7 @@ def analyze_page(url):
         "breakdown": aeo_breakdown
     }
 
-    # --- STEP: Broken internal links check (checks first 15 internal links only, for speed) ---
+    # --- Broken internal links check (first 15 only, for speed) ---
     broken_links = []
     links_to_check = internal_links[:15]
     for link in links_to_check:

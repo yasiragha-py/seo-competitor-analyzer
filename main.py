@@ -15,6 +15,7 @@ DAILY_LIMIT = 20
 
 class AnalyzeRequest(BaseModel):
     urls: List[str]
+    respect_robots: bool = True
 
 
 @app.get("/")
@@ -76,7 +77,7 @@ def analyze(request: AnalyzeRequest, req: Request):
     db = SessionLocal()
 
     for url in request.urls:
-        result = analyze_page(url)
+        result = analyze_page(url, respect_robots=request.respect_robots)
         results.append(result)
 
         if "error" not in result:
