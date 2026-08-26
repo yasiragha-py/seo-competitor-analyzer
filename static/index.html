@@ -305,39 +305,60 @@ function reloadPage() {
   window.location.reload();
 }
 
-async function checkAnyway(url) {
-  const res = await fetch("/analyze", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ urls: [url], respect_robots: false })
-  });
-  const data = await res.json();
+async function checkAnyway(url, btnEl) {
+  const originalText = btnEl.innerText;
+  btnEl.disabled = true;
+  btnEl.innerText = "Checking...";
+  btnEl.style.opacity = "0.6";
+  btnEl.style.cursor = "not-allowed";
 
-  if (res.status === 429) {
-    showToast(data.detail);
-    return;
-  }
+  try {
+    const res = await fetch("/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ urls: [url], respect_robots: false })
+    });
+    const data = await res.json();
 
-  const r = data.results[0];
-  if (r.error) {
-    showToast("Still couldn't fetch this site: " + r.error);
-    return;
-  }
-
-  storedResults[r.url] = r;
-  const quotaText = document.getElementById("quotaText");
-  if (typeof data.remaining_today === "number") {
-    quotaText.innerHTML = `<b>${data.remaining_today}</b> / ${DAILY_LIMIT} requests left today`;
-  }
-
-  // find and replace the error card for this URL with the real result card
-  const cards = document.querySelectorAll("#output .site-card");
-  cards.forEach(card => {
-    const heading = card.querySelector("h3");
-    if (heading && heading.innerText === url) {
-      card.outerHTML = siteCard(r);
+    if (res.status === 429) {
+      showToast(data.detail);
+      btnEl.disabled = false;
+      btnEl.innerText = originalText;
+      btnEl.style.opacity = "1";
+      btnEl.style.cursor = "pointer";
+      return;
     }
-  });
+
+    const r = data.results[0];
+    if (r.error) {
+      showToast("Still couldn't fetch this site: " + r.error);
+      btnEl.disabled = false;
+      btnEl.innerText = originalText;
+      btnEl.style.opacity = "1";
+      btnEl.style.cursor = "pointer";
+      return;
+    }
+
+    storedResults[r.url] = r;
+    const quotaText = document.getElementById("quotaText");
+    if (typeof data.remaining_today === "number") {
+      quotaText.innerHTML = `<b>${data.remaining_today}</b> / ${DAILY_LIMIT} requests left today`;
+    }
+
+    const cards = document.querySelectorAll("#output .site-card");
+    cards.forEach(card => {
+      const heading = card.querySelector("h3");
+      if (heading && heading.innerText === url) {
+        card.outerHTML = siteCard(r);
+      }
+    });
+  } catch (err) {
+    showToast("Request failed: " + err);
+    btnEl.disabled = false;
+    btnEl.innerText = originalText;
+    btnEl.style.opacity = "1";
+    btnEl.style.cursor = "pointer";
+  }
 }
 
 window.addEventListener("scroll", () => {
@@ -621,7 +642,7 @@ async function runAnalysis() {
           <div class="site-card error-card">
             <h3>${r.url || "URL"}</h3>
             <div class="error-text">${isRobotsBlock ? "This site's robots.txt blocks automated tools." : r.error}</div>
-            ${isRobotsBlock ? `<button class="secondary" style="margin-top:10px;" onclick="checkAnyway('${r.url}')">Check anyway →</button>` : ""}
+            ${isRobotsBlock ? `<button class="secondary" id="checkAnywayBtn-${blockedUrls.length}" style="margin-top:10px;" onclick="checkAnyway('${r.url}', this)">Check anyway →</button>` : ""}
           </div>`;
         return;
       }
