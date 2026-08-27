@@ -1,15 +1,22 @@
-# Agha
+# SEO Competitor Analyzer
 
-Python developer building applied projects in web scraping, backend APIs, and data analysis. Currently progressing through NumPy, Pandas, and Matplotlib toward Scikit-learn and machine learning fundamentals.
+A Python backend that scrapes and analyzes web pages for on-page SEO signals. Built with FastAPI, BeautifulSoup, and SQLAlchemy.
 
-## Projects
-SEO Competitor Analyzer — a FastAPI backend with a BeautifulSoup scraping engine, SQLite storage via SQLAlchemy, and a rate-limited REST API deployed on Railway. Parses HTML, extracts structured data, computes content metrics, and returns comparison reports across multiple URLs.
+## Features
+Fetches HTML via requests and BeautifulSoup. Extracts title, meta description, headings, canonical tags, Open Graph and Twitter Card tags, JSON-LD structured data, and internal/external links. Checks internal links for broken status codes. Computes a readiness score based on heading structure and schema presence. Compares metrics across multiple URLs in a single request. Stores results in SQLite via SQLAlchemy. Enforces a daily rate limit per client IP. Respects robots.txt by default with an override path for authorized checks.
 
 ## Stack
-Python, FastAPI, Pandas, NumPy, SQLite, SQLAlchemy, BeautifulSoup, Git, VS Code, PyCharm
+Python, FastAPI, Pydantic, BeautifulSoup4, Requests, SQLAlchemy, SQLite, HTML/CSS/JavaScript frontend
 
-## Learning path
-Python fundamentals, NumPy and Pandas, SQL, Scikit-learn, Neural Networks and Loss Functions, LLMs, Prompt Engineering, RAG, Agents
+## API
+POST /analyze accepts a list of URLs and returns per-site metrics plus a comparison summary. GET /quota returns remaining daily requests for the caller.
+
+## Run locally
+pip install -r requirements.txt
+uvicorn main:app --reload
+
+## Deployment
+Configured for Railway with a render.yaml for alternate platforms.
 
 ## Contact
 Email: aghayasirkhan59@gmail.com
